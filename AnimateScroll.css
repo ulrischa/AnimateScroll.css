@@ -1,0 +1,157 @@
+/*!
+ * AnimateScroll.css
+ * Version: 0.2.0
+ *
+ * Small scroll-driven helper layer for Animate.css v4.
+ * It controls WHEN an Animate.css animation runs based on scroll position,
+ * without changing HOW the animation looks.
+ *
+ * Author: Ulrich Schäffler
+ * License: MIT (adjust as needed)
+ * File: animatescroll.css
+ */
+
+/* Base configuration
+ * ------------------
+ * .animatescroll is the main hook.
+ * .scroll-animate is a semantic alias if you prefer a more descriptive name.
+ *
+ * Animate.css must be loaded before this file.
+ * AnimateScroll expects Animate.css v4 class names such as:
+ * - .animate__animated
+ * - .animate__fadeInUp
+ * - .animate__zoomIn
+ */
+
+.animatescroll,
+.scroll-animate {
+  /*
+   * View inset used by the element’s own view() timeline.
+   *
+   * The value is a pair:
+   *   "<length-percentage> <length-percentage>"
+   *
+   * The first value shifts when the timeline begins.
+   *   - Positive values → start later (element must be further inside the viewport)
+   *   - Negative values → start earlier (element can still be outside)
+   *
+   * The second value is reserved for future extension and left at 0%.
+   */
+  --as-view-inset: 0% 0%;
+
+  /*
+   * Which visibility phase of the element drives the animation:
+   *   entry   → while the element is entering the viewport
+   *   cover   → while the element moves through the viewport
+   *   contain → while the element is fully visible
+   */
+  --as-range: entry;
+}
+
+/* Scroll-driven behaviour
+ * -----------------------
+ * Only enable scroll-driven animations when:
+ * - the user does not prefer reduced motion
+ * - the browser supports animation-timeline: view()
+ *
+ * Animate.css still provides:
+ * - animation-name
+ * - easing
+ * - keyframes
+ * - delay (via classes like .animate__delay-1s)
+ *
+ * AnimateScroll only changes the timing source from "time" to "scroll".
+ */
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .animatescroll.animate__animated,
+    .scroll-animate.animate__animated {
+      /*
+       * Bind the existing Animate.css animation to a view timeline.
+       * view(var(--as-view-inset)) uses the element itself as timeline source.
+       * The inset (custom property) adjusts when the timeline runs.
+       */
+      animation-timeline: view(var(--as-view-inset));
+
+      /* Use the configured visibility range (entry, cover, contain) */
+      animation-range: var(--as-range);
+
+      /*
+       * For scroll-driven animations, duration should be auto so that
+       * the keyframes are mapped onto the full progress of the timeline.
+       */
+      animation-duration: auto;
+
+      /* Keep the final keyframe state after the animation has finished */
+      animation-fill-mode: both;
+
+      /*
+       * Prevent subtle flicker before the element starts animating.
+       * The Animate.css keyframes will override this value when active.
+       */
+      opacity: 0;
+    }
+  }
+}
+
+/* Range helper classes
+ * --------------------
+ * Use these to control which part of the element’s visibility drives
+ * the animation timeline.
+ */
+
+/* Default: animate while the element is entering the viewport */
+.as-range-entry {
+  --as-range: entry;
+}
+
+/* Animate across the whole visible journey (entering and leaving) */
+.as-range-cover {
+  --as-range: cover;
+}
+
+/* Animate only while the element is fully visible */
+.as-range-contain {
+  --as-range: contain;
+}
+
+/* Viewport relative offset helpers
+ * --------------------------------
+ * These helpers adjust when the animation starts relative to the viewport,
+ * using percentages instead of pixels.
+ *
+ * Common pattern:
+ *   early  → animation starts sooner, while the element is still outside
+ *   late   → animation starts later, when the element is further inside
+ *
+ * Positive values in the first component start later.
+ * Negative values in the first component start earlier.
+ */
+
+/* EARLY: start a bit before the element reaches the viewport
+ * The element begins animating when it is roughly 10% before the visual area.
+ */
+.as-offset-vp-early-10 {
+  --as-view-inset: -10% 0%;
+}
+
+/* EARLY: stronger early start (about 20% before the viewport) */
+.as-offset-vp-early-20 {
+  --as-view-inset: -20% 0%;
+}
+
+/* LATE: start when about 10% of the element has entered the viewport */
+.as-offset-vp-late-10 {
+  --as-view-inset: 10% 0%;
+}
+
+/* LATE: start when about 20% of the element has entered the viewport */
+.as-offset-vp-late-20 {
+  --as-view-inset: 20% 0%;
+}
+
+/* LATE: start when about 30% of the element has entered the viewport */
+.as-offset-vp-late-30 {
+  --as-view-inset: 30% 0%;
+}
